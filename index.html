@@ -1739,8 +1739,8 @@
       const div = document.createElement("div");
       div.className = "gallery-item";
       const safeAlt = (imgObj.name || "Photo").replace(/"/g, "&quot;");
-      div.innerHTML = `<img loading="lazy" src="${imgObj.url}" alt="${safeAlt}">`;
-      div.addEventListener("click", () => openLightbox(imgObj.url, imgObj.name));
+      div.innerHTML = `<img loading="lazy" src="${img.thumb}" alt="${(img.name||"Photo").replace(/"/g,'&quot;')}">`;
+      div.addEventListener("click", () => openLightbox(img.full || img.thumb, img.name));
       grid.appendChild(div);
     });
   };
