@@ -1696,75 +1696,131 @@
     header.parentElement.classList.toggle("open");
   }
 
-  // -------------------- GALLERY / LIGHTBOX --------------------
-  function openLightbox(src, alt) {
-    const lb = document.getElementById("lightbox");
-    const img = document.getElementById("lightboxImg");
-    if (!lb || !img) return;
+// -------------------- GALLERY / LIGHTBOX --------------------
+function openLightbox(src, alt) {
+  const lb = document.getElementById("lightbox");
+  const img = document.getElementById("lightboxImg");
+  if (!lb || !img) return;
 
-    img.src = src;
-    img.alt = alt || "";
-    lb.classList.add("open");
-    document.body.style.overflow = "hidden";
+  img.src = src;
+  img.alt = alt || "";
+  lb.classList.add("open");
+  document.body.style.overflow = "hidden";
+}
+
+function closeLightbox(e) {
+  if (e && e.target && e.target.id === "lightboxImg") return;
+  const lb = document.getElementById("lightbox");
+  const img = document.getElementById("lightboxImg");
+  if (!lb || !img) return;
+
+  lb.classList.remove("open");
+  img.src = "";
+  document.body.style.overflow = "";
+  if (e) e.stopPropagation();
+}
+
+window.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") closeLightbox();
+});
+
+// JSONP callback MUST be global
+window.__galleryLoaded = false;
+
+window.handleGallery = function (data) {
+  window.__galleryLoaded = true;
+
+  const grid = document.getElementById("galleryGrid");
+  if (!grid) return;
+
+  if (!data || !data.ok) {
+    const msg = (data && data.error) ? data.error : "Unknown error";
+    grid.innerHTML = `<div style="opacity:0.7;">Gallery failed to load.<br><span style="font-size:12px;opacity:0.8;">${msg}</span></div>`;
+    return;
   }
 
-  function closeLightbox(e) {
-    if (e && e.target && e.target.id === "lightboxImg") return;
-    const lb = document.getElementById("lightbox");
-    const img = document.getElementById("lightboxImg");
-    if (!lb || !img) return;
-
-    lb.classList.remove("open");
-    img.src = "";
-    document.body.style.overflow = "";
-    if (e) e.stopPropagation();
+  if (!Array.isArray(data.images) || data.images.length === 0) {
+    grid.innerHTML = `<div style="opacity:0.7;">No photos found in the folder.</div>`;
+    return;
   }
 
-  // JSONP callback MUST be global
-  window.handleGallery = function(data) {
-    const grid = document.getElementById("galleryGrid");
-    if (!grid) return;
+  grid.innerHTML = "";
 
-    if (!data || !data.ok) {
-      grid.innerHTML = `<div style="opacity:0.7;">Gallery failed to load.</div>`;
-      return;
-    }
-    if (!data.images || data.images.length === 0) {
-      grid.innerHTML = `<div style="opacity:0.7;">No photos found in the folder.</div>`;
-      return;
-    }
+  data.images.forEach((imgObj) => {
+    const div = document.createElement("div");
+    div.className = "gallery-item";
 
-    grid.innerHTML = "";
-    data.images.forEach((imgObj) => {
-      const div = document.createElement("div");
-      div.className = "gallery-item";
-      const safeAlt = (imgObj.name || "Photo").replace(/"/g, "&quot;");
-      div.innerHTML = `<img loading="lazy" src="${img.thumb}" alt="${(img.name||"Photo").replace(/"/g,'&quot;')}">`;
-      div.addEventListener("click", () => openLightbox(img.full || img.thumb, img.name));
-      grid.appendChild(div);
+    const img = document.createElement("img");
+    img.loading = "lazy";
+    img.alt = imgObj.name || "Photo";
+
+    // Try thumb first
+    img.src = imgObj.thumb || imgObj.uc || imgObj.view;
+
+    // Fallback chain if Google blocks one format
+    img.onerror = () => {
+      if (img.src !== imgObj.uc && imgObj.uc) {
+        img.src = imgObj.uc;
+        return;
+      }
+      // final fallback: show filename (so you see something)
+      img.onerror = null;
+      div.style.cursor = "default";
+      div.innerHTML = `<div style="padding:12px;font-size:12px;opacity:0.7;">${imgObj.name || "Image failed to load"}</div>`;
+    };
+
+    div.appendChild(img);
+
+    div.addEventListener("click", () => {
+      const full = imgObj.full || imgObj.uc || imgObj.thumb;
+      if (full) openLightbox(full, imgObj.name);
+      else if (imgObj.view) window.open(imgObj.view, "_blank", "noopener");
     });
+
+    grid.appendChild(div);
+  });
+};
+
+function loadGallery() {
+  const grid = document.getElementById("galleryGrid");
+  if (grid) grid.innerHTML = `<div style="opacity:0.7;">Loading photos…</div>`;
+
+  window.__galleryLoaded = false;
+
+  const cb = "handleGallery";
+  const url = `${GALLERY_ENDPOINT}?action=gallery&callback=${cb}&_=${Date.now()}`;
+
+  const old = document.getElementById("galleryJsonp");
+  if (old) old.remove();
+
+  const s = document.createElement("script");
+  s.id = "galleryJsonp";
+  s.src = url;
+  s.async = true;
+
+  s.onerror = () => {
+    const g = document.getElementById("galleryGrid");
+    if (g) g.innerHTML = `<div style="opacity:0.7;">Gallery request blocked (script load failed).</div>`;
   };
 
-  function loadGallery() {
-    const cb = "handleGallery";
-    const src = `${GALLERY_ENDPOINT}?action=gallery&callback=${cb}&_=${Date.now()}`;
+  document.body.appendChild(s);
 
-    const old = document.getElementById("galleryJsonp");
-    if (old) old.remove();
-
-    const s = document.createElement("script");
-    s.id = "galleryJsonp";
-    s.src = src;
-    s.onerror = () => {
-      const grid = document.getElementById("galleryGrid");
-      if (grid) grid.innerHTML = `<div style="opacity:0.7;">Gallery request failed.</div>`;
-    };
-    document.body.appendChild(s);
-  }
-
-  window.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") closeLightbox();
-  });
+  // If script loads but never calls callback (common when doGet returns "OK" / old deploy)
+  setTimeout(() => {
+    if (!window.__galleryLoaded) {
+      const g = document.getElementById("galleryGrid");
+      if (g) {
+        g.innerHTML =
+          `<div style="opacity:0.7;">
+            Gallery didn’t respond.<br>
+            This usually means your Apps Script web app is still serving an old version or not returning <code>${cb}(…)</code>.<br>
+            Test this URL in a new tab:<br>
+            <span style="font-size:12px;word-break:break-all;">${url}</span>
+          </div>`;
+      }
+    }
+  }, 6000);
+}
 
   // -------------------- INIT --------------------
   window.addEventListener("DOMContentLoaded", () => {
