@@ -325,6 +325,8 @@
 
   .rsvp-form.visible { display: block; }
 
+  .rsvp-grid.submitted { display: none; }
+
   .form-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -373,6 +375,36 @@
   }
 
   .form-submit { margin-top: 20px; }
+
+  .form-submit .btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.62;
+    transform: none;
+  }
+
+  .rsvp-status {
+    display: none;
+    margin-top: 20px;
+    max-width: 620px;
+    border: 1px solid var(--taupe);
+    border-radius: 4px;
+    padding: 16px 18px;
+    font-size: 14px;
+    line-height: 1.5;
+    background: var(--warm-white);
+  }
+
+  .rsvp-status.visible { display: block; }
+  .rsvp-status.sending { color: var(--brown); }
+  .rsvp-status.success {
+    border-color: var(--forest);
+    color: var(--forest);
+    font-weight: 500;
+  }
+  .rsvp-status.error {
+    border-color: var(--rose);
+    color: var(--dark);
+  }
 /* ── GALLERY ── */
 #gallery { background: var(--warm-white); }
 
@@ -894,7 +926,7 @@
 <!-- RSVP -->
 <div id="rsvp" style="background: var(--cream);">
   <section>
-    <div class="section-label">Please respond by August 2026</div>
+    <div class="section-label">Please respond by Illustrative RSVP deadline</div>
     <h2>Will you be <em>joining us?</em></h2>
     <p class="section-sub">Let us know whether you can make it so we can plan accordingly.</p>
 
@@ -959,7 +991,7 @@
   </div>
 
   <div class="form-submit">
-    <button class="btn btn-primary" onclick="submitRSVP()">Send RSVP →</button>
+    <button id="rsvpSubmitYes" class="btn btn-primary" type="button" data-rsvp-submit data-default-label="Send RSVP" onclick="submitRSVP()">Send RSVP</button>
   </div>
 </div>
 
@@ -975,9 +1007,11 @@
     </div>
   </div>
   <div class="form-submit">
-    <button class="btn btn-outline" onclick="submitRSVP()">Send RSVP →</button>
+    <button id="rsvpSubmitNo" class="btn btn-outline" type="button" data-rsvp-submit data-default-label="Send RSVP" onclick="submitRSVP()">Send RSVP</button>
   </div>
 </div>
+
+<div id="rsvpStatus" class="rsvp-status" role="status" aria-live="polite"></div>
 
     </section>
 </div>
@@ -1533,6 +1567,8 @@
 
   let rsvpChoice = null;
   let countdownTimer = null;
+  let rsvpSubmitting = false;
+  let rsvpSubmitted = false;
 
   // -------------------- COUNTDOWN --------------------
   function updateCountdown() {
@@ -1575,7 +1611,11 @@
 
   // -------------------- RSVP UI --------------------
   function selectAttendance(choice) {
+    if (rsvpSubmitting || rsvpSubmitted) return;
+
     rsvpChoice = choice;
+
+    setRSVPStatus();
 
     document.getElementById("opt-yes")?.classList.remove("selected");
     document.getElementById("opt-no")?.classList.remove("selected");
@@ -1586,6 +1626,23 @@
     document.getElementById("rsvp-form-" + choice)?.classList.add("visible");
 
     if (choice === "yes") renderGuestFields();
+  }
+
+  function setRSVPStatus(message = "", state = "") {
+    const status = document.getElementById("rsvpStatus");
+    if (!status) return;
+
+    status.textContent = message;
+    status.className = "rsvp-status";
+    if (message) status.classList.add("visible");
+    if (state) status.classList.add(state);
+  }
+
+  function setRSVPButtons(disabled, label) {
+    document.querySelectorAll("[data-rsvp-submit]").forEach(button => {
+      button.disabled = disabled;
+      button.textContent = label || button.dataset.defaultLabel || "Send RSVP";
+    });
   }
 
   function renderGuestFields() {
@@ -1623,8 +1680,10 @@
   }
 
   async function submitRSVP() {
+    if (rsvpSubmitting || rsvpSubmitted) return;
+
     if (!rsvpChoice) {
-      alert("Please choose Yes or Unable to attend first.");
+      setRSVPStatus("Please choose Yes or Unable to attend first.", "error");
       return;
     }
 
@@ -1654,7 +1713,15 @@
       payload.message = (document.getElementById("rsvpMsgYes")?.value || "").trim();
 
       if (!payload.name || !payload.email) {
-        alert("Please enter your full name and email.");
+        setRSVPStatus("Please enter your full name and email.", "error");
+        document.getElementById(!payload.name ? "rsvpNameYes" : "rsvpEmailYes")?.focus();
+        return;
+      }
+
+      const emailInput = document.getElementById("rsvpEmailYes");
+      if (emailInput && !emailInput.checkValidity()) {
+        setRSVPStatus("Please enter a valid email address.", "error");
+        emailInput.focus();
         return;
       }
     } else {
@@ -1667,41 +1734,46 @@
       payload.message = (document.getElementById("rsvpMsgNo")?.value || "").trim();
 
       if (!payload.name) {
-        alert("Please enter your full name.");
+        setRSVPStatus("Please enter your full name.", "error");
+        document.getElementById("rsvpNameNo")?.focus();
         return;
       }
     }
 
+    rsvpSubmitting = true;
+    setRSVPButtons(true, "Sending...");
+    setRSVPStatus("Sending your RSVP...", "sending");
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
+    const minimumFeedbackDelay = new Promise(resolve => setTimeout(resolve, 600));
+
     try {
-      await fetch(RSVP_ENDPOINT, {
-        method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
+      await Promise.all([
+        fetch(RSVP_ENDPOINT, {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "text/plain;charset=UTF-8" },
+          body: JSON.stringify(payload),
+          signal: controller.signal
+        }),
+        minimumFeedbackDelay
+      ]);
 
-      alert("Thanks — your RSVP was submitted.");
+      clearTimeout(timeoutId);
+      rsvpSubmitting = false;
+      rsvpSubmitted = true;
 
-      // clear fields
-      if (rsvpChoice === "yes") {
-        ["rsvpNameYes","rsvpEmailYes","rsvpDietYes","rsvpMsgYes"].forEach(id => {
-          const el = document.getElementById(id);
-          if (el) el.value = "";
-        });
-        const sel = document.getElementById("rsvpPartySizeYes");
-        if (sel) sel.value = "1";
-        const dinner = document.getElementById("rsvpDinnerYes");
-        if (dinner) dinner.value = "yes";
-        renderGuestFields();
-      } else {
-        ["rsvpNameNo","rsvpMsgNo"].forEach(id => {
-          const el = document.getElementById(id);
-          if (el) el.value = "";
-        });
-      }
+      setRSVPButtons(true, "RSVP sent");
+      document.querySelector(".rsvp-grid")?.classList.add("submitted");
+      document.querySelectorAll(".rsvp-form").forEach(form => form.classList.remove("visible"));
+      setRSVPStatus("Thank you for your response. Your RSVP has been sent.", "success");
     } catch (err) {
+      clearTimeout(timeoutId);
+      rsvpSubmitting = false;
+      setRSVPButtons(false);
       console.error(err);
-      alert("Submission failed. Please try again.");
+      setRSVPStatus("We couldn't send your RSVP. Please check your connection and try again.", "error");
     }
   }
 
