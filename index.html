@@ -1,20 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
-<head> 
+<head>
+<meta http-equiv="Content-Security-Policy" content="connect-src 'none'; form-action 'none'; base-uri 'self'; object-src 'none'">
+<script src="demo-form.js"></script>
+<script src="demo-banner.js"></script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Alex & Sam's Wedding</title>
 <meta name="description" content="Celebrate the wedding of Alex Example and Sam Example on Illustrative event date at Ciel de Foret in Daejeon, South Korea.">
 <meta name="theme-color" content="#faf8f4">
-<link rel="canonical" href="https://jinkeawedding.com/">
+<link rel="canonical" href="https://example.invalid/">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Alex & Sam's Wedding">
 <meta property="og:title" content="Alex & Sam's Wedding">
 <meta property="og:description" content="Illustrative event date | Ciel de Foret | Daejeon, South Korea">
-<meta property="og:url" content="https://jinkeawedding.com/">
-<meta property="og:image" content="https://jinkeawedding.com/assets/demo-share.svg">
+<meta property="og:url" content="https://example.invalid/">
+<meta property="og:image" content="assets/demo-share.svg">
 <meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="1728">
 <meta property="og:image:height" content="915">
@@ -23,7 +27,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Alex & Sam's Wedding">
 <meta name="twitter:description" content="Illustrative event date | Ciel de Foret | Daejeon, South Korea">
-<meta name="twitter:image" content="https://jinkeawedding.com/assets/demo-share.svg">
+<meta name="twitter:image" content="assets/demo-share.svg">
 <meta name="twitter:image:alt" content="Alex and Sam — Illustrative event date — Daejeon, South Korea">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
@@ -894,7 +898,7 @@
   <div class="hero-content">
     <div class="eyebrow">Wedding Invitation</div>
     <h1>Alex <em>&</em> Sam</h1>
-    <div class="hero-date">Saturday, Illustrative event date</div>
+    <div class="hero-date">Illustrative event date</div>
     <div class="hero-venue">3:00 PM · Ciel de Foret · Daejeon, South Korea</div>
     <div class="countdown">
       <div class="cd-unit">
@@ -926,7 +930,7 @@
 <!-- RSVP -->
 <div id="rsvp" style="background: var(--cream);">
   <section>
-    <div class="section-label">Please respond by Illustrative RSVP deadline</div>
+    <div class="section-label">Please respond by the illustrative RSVP deadline</div>
     <h2>Will you be <em>joining us?</em></h2>
     <p class="section-sub">Let us know whether you can make it so we can plan accordingly.</p>
 
@@ -947,11 +951,11 @@
   <div class="form-row">
     <div class="form-group">
       <label>Full name</label>
-      <input id="rsvpNameYes" type="text" placeholder="Your full name">
+      <input id="rsvpNameYes" type="text" placeholder="Demo Guest">
     </div>
     <div class="form-group">
       <label>Email</label>
-      <input id="rsvpEmailYes" type="email" placeholder="your@email.com">
+      <input id="rsvpEmailYes" type="email" placeholder="guest@example.invalid">
     </div>
   </div>
 
@@ -991,7 +995,7 @@
   </div>
 
   <div class="form-submit">
-    <button id="rsvpSubmitYes" class="btn btn-primary" type="button" data-rsvp-submit data-default-label="Send RSVP" onclick="submitRSVP()">Send RSVP</button>
+    <button id="rsvpSubmitYes" class="btn btn-primary" type="button" data-rsvp-submit data-default-label="Preview RSVP" onclick="submitRSVP()">Preview RSVP</button>
   </div>
 </div>
 
@@ -999,7 +1003,7 @@
   <div class="form-row">
     <div class="form-group">
       <label>Full name</label>
-      <input id="rsvpNameNo" type="text" placeholder="Your full name">
+      <input id="rsvpNameNo" type="text" placeholder="Demo Guest">
     </div>
     <div class="form-group">
       <label>Message (optional)</label>
@@ -1007,7 +1011,7 @@
     </div>
   </div>
   <div class="form-submit">
-    <button id="rsvpSubmitNo" class="btn btn-outline" type="button" data-rsvp-submit data-default-label="Send RSVP" onclick="submitRSVP()">Send RSVP</button>
+    <button id="rsvpSubmitNo" class="btn btn-outline" type="button" data-rsvp-submit data-default-label="Preview RSVP" onclick="submitRSVP()">Preview RSVP</button>
   </div>
 </div>
 
@@ -1146,7 +1150,7 @@
               <div class="info-block-sub">Seoul Express Bus Terminal → Daejeon Complex Terminal. No booking needed.</div>
             </div>
           </div>
-          <div class="tip-box"><strong>Recommended:</strong> Take KTX on the morning of Oct 3rd to arrive by 2 PM. Book tickets in advance — they sell out on holiday weekends.</div>
+          <div class="tip-box"><strong>Recommended:</strong> Take KTX on the morning of the example event day to arrive by 2 PM. Book tickets in advance — they sell out on holiday weekends.</div>
         </div>
       </div>
 <div class="travel-step">
@@ -1558,7 +1562,7 @@
 <!-- FOOTER -->
 <footer>
   <div class="footer-names">Alex Example & Sam Example</div>
-  <div class="footer-sub">Illustrative event date · Ciel de Foret · Daejeon, South Korea</div>
+  <div class="footer-sub">an illustrative date · Ciel de Foret · Daejeon, South Korea</div>
 </footer>
 
 <script>
@@ -1641,7 +1645,7 @@
   function setRSVPButtons(disabled, label) {
     document.querySelectorAll("[data-rsvp-submit]").forEach(button => {
       button.disabled = disabled;
-      button.textContent = label || button.dataset.defaultLabel || "Send RSVP";
+      button.textContent = label || button.dataset.defaultLabel || "Preview RSVP";
     });
   }
 
@@ -1750,7 +1754,7 @@
 
     try {
       await Promise.all([
-        fetch(RSVP_ENDPOINT, {
+        demoSubmission(RSVP_ENDPOINT, {
           method: "POST",
           mode: "no-cors",
           headers: { "Content-Type": "text/plain;charset=UTF-8" },
@@ -1764,10 +1768,10 @@
       rsvpSubmitting = false;
       rsvpSubmitted = true;
 
-      setRSVPButtons(true, "RSVP sent");
+      setRSVPButtons(true, "Preview complete");
       document.querySelector(".rsvp-grid")?.classList.add("submitted");
       document.querySelectorAll(".rsvp-form").forEach(form => form.classList.remove("visible"));
-      setRSVPStatus("Thank you for your response. Your RSVP has been sent.", "success");
+      setRSVPStatus("Demo complete. No RSVP was sent or stored.", "success");
     } catch (err) {
       clearTimeout(timeoutId);
       rsvpSubmitting = false;
@@ -1875,44 +1879,7 @@ window.handleGallery = function (data) {
 };
 
 function loadGallery() {
-  const grid = document.getElementById("galleryGrid");
-  if (grid) grid.innerHTML = `<div style="opacity:0.7;">Loading photos…</div>`;
-
-  window.__galleryLoaded = false;
-
-  const cb = "handleGallery";
-  const url = `${GALLERY_ENDPOINT}?action=gallery&callback=${cb}&_=${Date.now()}`;
-
-  const old = document.getElementById("galleryJsonp");
-  if (old) old.remove();
-
-  const s = document.createElement("script");
-  s.id = "galleryJsonp";
-  s.src = url;
-  s.async = true;
-
-  s.onerror = () => {
-    const g = document.getElementById("galleryGrid");
-    if (g) g.innerHTML = `<div style="opacity:0.7;">Gallery request blocked (script load failed).</div>`;
-  };
-
-  document.body.appendChild(s);
-
-  // If script loads but never calls callback (common when doGet returns "OK" / old deploy)
-  setTimeout(() => {
-    if (!window.__galleryLoaded) {
-      const g = document.getElementById("galleryGrid");
-      if (g) {
-        g.innerHTML =
-          `<div style="opacity:0.7;">
-            Gallery didn’t respond.<br>
-            This usually means your Apps Script web app is still serving an old version or not returning <code>${cb}(…)</code>.<br>
-            Test this URL in a new tab:<br>
-            <span style="font-size:12px;word-break:break-all;">${url}</span>
-          </div>`;
-      }
-    }
-  }, 6000);
+  window.handleGallery({ok:true,images:[{name:'Fictional event illustration',thumb:'assets/demo-share.svg',full:'assets/demo-share.svg'}]});
 }
 
   // -------------------- INIT --------------------
